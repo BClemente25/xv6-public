@@ -90,9 +90,32 @@ sys_uptime(void)
   return xticks;
 }
 
+
+// Obtiene un puntero al proceso actual que está ejecutando la llamada al sistema y retorna el id del proceso padre
+
 int
 sys_getppid(void)
 {
   struct proc *curproc = myproc();
   return curproc->parent ? curproc->parent->pid : -1;
+}
+
+
+ //sys_getancestor funciona parecido a sys_getppid ya que obtiene el proceso actual para asi recorrer hacia atras en los procesos
+ //hasta que encuentra un ancestro y lo devuelve a la funcion, dando un -1 si es que no encuentra suficientes ancestros
+ // Obtiene el argumento pasado a la syscall, que indica el nivel del ancestro
+ // argint(0, &n) obtiene el primer argumento entero (índice 0) y lo guarda en 'n'
+ // Recorre la cadena de procesos padres hasta encontrar el ancestro especificado
+int
+sys_getancestor(void)
+{
+    int n;
+    struct proc *p = myproc();
+    if (argint(0, &n) < 0)
+        return -1;
+    while (n > 0 && p->parent) {
+        p = p->parent;
+        n--;
+    }
+    return n == 0 ? p->pid : -1;
 }

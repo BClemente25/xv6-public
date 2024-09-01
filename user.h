@@ -38,4 +38,5 @@ void* malloc(uint);
 void free(void*);
 int atoi(const char*);
 
-int getppid(void);
+int getppid(void); //  declaración para el uso de getppid
+int getancestor(int); //  declaración para el uso getancestor
