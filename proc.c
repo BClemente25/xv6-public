@@ -336,24 +336,24 @@ scheduler(void)
 
     acquire(&ptable.lock);
     
-    int highest_priority = 10; // Inicializa con un valor mayor que el máximo permitido (9).
+    int highest_priority = 10; // Inicializa el valor máximo permitido (9)
 
-    // Recorrer la tabla de procesos para encontrar el proceso ejecutable con mayor prioridad.
+    // Recorrer la tabla de procesos  
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
       if(p->state == RUNNABLE) {
-        // Actualizar prioridades de todos los procesos RUNNABLE.
+        // Actualizar prioridades de todos los procesos RUNNABLE
         p->priority += p->boost;
 
-        // Limitar las prioridades al rango de 0 a 9.
+        // Limitar las prioridades al rango de 0 a 9
         if (p->priority >= 9) {
           p->priority = 9;
-          p->boost = -1;  // Cambiar el boost a -1 si alcanzó la prioridad máxima.
+          p->boost = -1;  // Cambiar el boost a -1 si alcanzó la prioridad maxima
         } else if (p->priority <= 0) {
           p->priority = 0;
-          p->boost = 1;   // Cambiar el boost a 1 si alcanzó la prioridad mínima.
+          p->boost = 1;   // Cambiar el boost a 1 si alcanzó la prioridad minima
         }
 
-        // Seleccionar el proceso con mayor prioridad (menor valor de priority).
+        // Seleccionar el proceso con mayor prioridad
         if (p->priority < highest_priority) {
           highest_priority = p->priority;
           selected_proc = p;
@@ -361,7 +361,7 @@ scheduler(void)
       }
     }
 
-    // Si encontramos un proceso RUNNABLE con la prioridad más alta, lo ejecutamos.
+    // Si se encuentra un proceso RUNNABLE con la prioridad más alta se ejecuta
     if (selected_proc != 0) {
       c->proc = selected_proc;
       switchuvm(selected_proc);
@@ -370,9 +370,9 @@ scheduler(void)
       swtch(&(c->scheduler), selected_proc->context);
       switchkvm();
 
-      // El proceso terminó su turno; c->proc se restablece a 0.
+      // El proceso termina su turno; c->proc se restablece a 0
       c->proc = 0;
-      selected_proc = 0; // Resetear el proceso seleccionado.
+      selected_proc = 0; // Resetear el proceso seleccionado
     }
 
     release(&ptable.lock);

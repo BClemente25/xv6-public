@@ -22,4 +22,4 @@
 #define SYS_close  21
 #define SYS_getppid 22 //implementacion getppid
 #define SYS_getancestor 23 //implementacion getancestor
-#define SYS_getpriority  24
+#define SYS_getpriority  24 //implementacion getpriority

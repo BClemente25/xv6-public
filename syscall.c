@@ -131,7 +131,7 @@ static int (*syscalls[])(void) = {
 [SYS_close]   =sys_close,
 [SYS_getppid] =sys_getppid, //implementacion getppid
 [SYS_getancestor] =sys_getancestor,//implementacion getancestor
-[SYS_getpriority] = sys_getpriority,
+[SYS_getpriority] = sys_getpriority, //implementacion getpriority
 };
 
 void
