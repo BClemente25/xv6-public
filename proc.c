@@ -89,6 +89,9 @@ found:
   p->state = EMBRYO;
   p->pid = nextpid++;
 
+  p->priority = 0;  // Prioridad inicial de 0
+  p->boost = 1;     // Boost inicial de 1
+
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -323,37 +326,59 @@ void
 scheduler(void)
 {
   struct proc *p;
+  struct proc *selected_proc = 0;
   struct cpu *c = mycpu();
   c->proc = 0;
-  
+
   for(;;){
     // Enable interrupts on this processor.
     sti();
 
-    // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+    
+    int highest_priority = 10; // Inicializa con un valor mayor que el máximo permitido (9).
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
+    // Recorrer la tabla de procesos para encontrar el proceso ejecutable con mayor prioridad.
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+      if(p->state == RUNNABLE) {
+        // Actualizar prioridades de todos los procesos RUNNABLE.
+        p->priority += p->boost;
 
-      swtch(&(c->scheduler), p->context);
+        // Limitar las prioridades al rango de 0 a 9.
+        if (p->priority >= 9) {
+          p->priority = 9;
+          p->boost = -1;  // Cambiar el boost a -1 si alcanzó la prioridad máxima.
+        } else if (p->priority <= 0) {
+          p->priority = 0;
+          p->boost = 1;   // Cambiar el boost a 1 si alcanzó la prioridad mínima.
+        }
+
+        // Seleccionar el proceso con mayor prioridad (menor valor de priority).
+        if (p->priority < highest_priority) {
+          highest_priority = p->priority;
+          selected_proc = p;
+        }
+      }
+    }
+
+    // Si encontramos un proceso RUNNABLE con la prioridad más alta, lo ejecutamos.
+    if (selected_proc != 0) {
+      c->proc = selected_proc;
+      switchuvm(selected_proc);
+      selected_proc->state = RUNNING;
+
+      swtch(&(c->scheduler), selected_proc->context);
       switchkvm();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
+      // El proceso terminó su turno; c->proc se restablece a 0.
       c->proc = 0;
+      selected_proc = 0; // Resetear el proceso seleccionado.
     }
-    release(&ptable.lock);
 
+    release(&ptable.lock);
   }
 }
+
 
 // Enter scheduler.  Must hold only ptable.lock
 // and have changed proc->state. Saves and restores
@@ -504,12 +529,12 @@ void
 procdump(void)
 {
   static char *states[] = {
-  [UNUSED]    "unused",
-  [EMBRYO]    "embryo",
-  [SLEEPING]  "sleep ",
-  [RUNNABLE]  "runble",
-  [RUNNING]   "run   ",
-  [ZOMBIE]    "zombie"
+  [UNUSED]  =  "unused",
+  [EMBRYO]  =  "embryo",
+  [SLEEPING] = "sleep ",
+  [RUNNABLE] = "runble",
+  [RUNNING]  = "run   ",
+  [ZOMBIE]  =  "zombie"
   };
   int i;
   struct proc *p;

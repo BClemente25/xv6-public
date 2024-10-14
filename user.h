@@ -40,3 +40,4 @@ int atoi(const char*);
 
 int getppid(void); //  declaración para el uso de getppid
 int getancestor(int); //  declaración para el uso getancestor
+int getpriority(void);

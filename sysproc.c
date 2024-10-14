@@ -119,3 +119,10 @@ sys_getancestor(void)
     }
     return n == 0 ? p->pid : -1;
 }
+
+int
+sys_getpriority(void)
+{
+  struct proc *p = myproc(); // Obtener el proceso actual
+  return p->priority;        // Retornar la prioridad del proceso
+}
